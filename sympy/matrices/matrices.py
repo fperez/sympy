@@ -2054,3 +2054,66 @@ def a2idx(a):
         return int(a)
     if hasattr(a, "__index__"):
         return a.__index__()
+
+
+def symarray(shape, prefix=''):
+    """Create a numpy ndarray of symbols (as an object array).
+
+    The created symbols are named prefix_i1_i2_...  You should thus provide a
+    non-empty prefix if you want your symbols to be unique for different output
+    arrays, as Sympy symbols with identical names are the same object.
+
+    Parameters
+    ----------
+
+    shape : int or tuple
+      Shape of the created array.  If an int, the array is one-dimensional; for
+      more than one dimension the shape must be a tuple.
+
+    prefix : string
+      A prefix prepended to the name of every symbol.
+
+    Examples
+    --------
+
+    >>> from sympy import symarray
+    >>> symarray(3)
+    array([_0, _1, _2], dtype=object)
+
+    If you want multiple symarrays to contain distinct symbols, you *must*
+    provide unique prefixes:
+    >>> a = symarray(3)
+    >>> b = symarray(3)
+    >>> a[0] is b[0]
+    True
+    >>> a = symarray(3, 'a')
+    >>> b = symarray(3, 'b')
+    >>> a[0] is b[0]
+    False
+
+    Creating symarrays with a prefix:
+    >>> symarray(3, 'a')
+    array([a_0, a_1, a_2], dtype=object)
+
+    For more than one dimension, the shape must be given as a tuple:
+    >>> symarray((2,3), 'a')
+    array([[a_0_0, a_0_1, a_0_2],
+           [a_1_0, a_1_1, a_1_2]], dtype=object)
+    >>> symarray((2,3,2), 'a')
+    array([[[a_0_0_0, a_0_0_1],
+            [a_0_1_0, a_0_1_1],
+            [a_0_2_0, a_0_2_1]],
+    <BLANKLINE>
+           [[a_1_0_0, a_1_0_1],
+            [a_1_1_0, a_1_1_1],
+            [a_1_2_0, a_1_2_1]]], dtype=object)
+    """
+    try:
+        import numpy as np
+    except ImportError:
+        raise ImportError("symarray requires numpy to be installed")
+    
+    arr = np.empty(shape, dtype=object)
+    for index in np.ndindex(shape):
+        arr[index] = Symbol('%s_%s' % (prefix, '_'.join(map(str, index))))
+    return arr
